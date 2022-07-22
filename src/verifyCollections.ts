@@ -45,7 +45,7 @@ export default async function verifyCollections(onlyFailed: boolean, dataPath: s
       console.log("Verified successfully (Or already verified)");
 
       if (onlyFailed) {
-        (collection as StoredCollection).failedWith = undefined;
+        delete (collection as StoredCollection).failedWith;
       } else {
         storedCollections.push({ ...collection });
       }
