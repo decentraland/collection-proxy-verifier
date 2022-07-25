@@ -28,10 +28,11 @@ export default async function verifyCollections(onlyFailed: boolean, dataPath: s
     let createdAt = CREATED_AT_GTE;
 
     if (storedCollections.length > 0) {
-      const latestCollectionCreatedAt = storedCollections[storedCollections.length - 1].createdAt;
+      // Doing + 1 at the end so it doesn't have the same value and the same proxy is attempted to be verified again.
+      const latestCollectionCreatedAt = Number(storedCollections[storedCollections.length - 1].createdAt) + 1;
 
-      if (Number(createdAt) < Number(latestCollectionCreatedAt)) {
-        createdAt = latestCollectionCreatedAt;
+      if (Number(createdAt) < latestCollectionCreatedAt) {
+        createdAt = latestCollectionCreatedAt.toString();
       }
     }
 
