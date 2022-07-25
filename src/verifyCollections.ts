@@ -5,9 +5,9 @@ import { config } from "dotenv";
 
 config();
 
-const FIRST_COLLECTION_CREATED_AT = "1652369600";
 const SUBGRAPH_URL = "https://api.thegraph.com/subgraphs/name/decentraland/collections-matic-mainnet";
 const COLLECTION_IMPLEMENTATION_ADDRESS = "0x006080C6061C4aF79b39Da0842a3a22A7b3f185e";
+const CREATED_AT_GTE = process.env.CREATED_AT_GTE!;
 const POLYGONSCAN_API_KEY = process.env.POLYGONSCAN_API_KEY;
 
 export type Collection = { id: string; createdAt: string };
@@ -25,10 +25,14 @@ export default async function verifyCollections(onlyFailed: boolean, dataPath: s
   if (onlyFailed) {
     collections = storedCollections.filter((c) => !!c.failedWith);
   } else {
-    let createdAt = FIRST_COLLECTION_CREATED_AT;
+    let createdAt = CREATED_AT_GTE;
 
     if (storedCollections.length > 0) {
-      createdAt = (Number(storedCollections[storedCollections.length - 1].createdAt) + 1).toString();
+      const latestCollectionCreatedAt = storedCollections[storedCollections.length - 1].createdAt;
+
+      if (Number(createdAt) < Number(latestCollectionCreatedAt)) {
+        createdAt = latestCollectionCreatedAt;
+      }
     }
 
     collections = await getCollectionsCreatedWithFactoryV3(createdAt);
