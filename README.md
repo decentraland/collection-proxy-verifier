@@ -20,7 +20,9 @@ The second time you run the application, it will attempt to verify collections t
 
 For example if we have collections A, B, C, D, E and we stopped the execution after C, the second execution will start at D.
 
-You can try to verify collections that failed any previous attempt by running `npm run start:failed`
+You can try to verify collections that failed any previous attempt by running `npm run start:failed`.
+
+Always commit the `data.json` file so anyone can continue the progress of the previous person.
 
 ## 25/07/2022
 
