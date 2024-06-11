@@ -5,7 +5,7 @@ import { config } from "dotenv";
 
 config();
 
-const SUBGRAPH_URL = "https://api.thegraph.com/subgraphs/name/decentraland/collections-matic-mainnet";
+const SUBGRAPH_URL = "https://subgraph.decentraland.org/collections-matic-mainnet";
 const COLLECTION_IMPLEMENTATION_ADDRESS = "0x006080C6061C4aF79b39Da0842a3a22A7b3f185e";
 const CREATED_AT_GTE = process.env.CREATED_AT_GTE!;
 const POLYGONSCAN_API_KEY = process.env.POLYGONSCAN_API_KEY;
