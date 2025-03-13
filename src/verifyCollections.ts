@@ -1,70 +1,70 @@
-import fs from "fs";
-import fetch from "node-fetch";
-import FormData from "form-data";
-import { config } from "dotenv";
+import fs from "fs"
+import fetch from "node-fetch"
+import FormData from "form-data"
+import { config } from "dotenv"
 
-config();
+config()
 
-const SUBGRAPH_URL = "https://api.thegraph.com/subgraphs/name/decentraland/collections-matic-mainnet";
-const COLLECTION_IMPLEMENTATION_ADDRESS = "0x006080C6061C4aF79b39Da0842a3a22A7b3f185e";
-const CREATED_AT_GTE = process.env.CREATED_AT_GTE!;
-const POLYGONSCAN_API_KEY = process.env.POLYGONSCAN_API_KEY;
+const SUBGRAPH_URL = "https://subgraph.decentraland.org/collections-matic-mainnet"
+const COLLECTION_IMPLEMENTATION_ADDRESS = "0x006080C6061C4aF79b39Da0842a3a22A7b3f185e"
+const CREATED_AT_GTE = process.env.CREATED_AT_GTE!
+const POLYGONSCAN_API_KEY = process.env.POLYGONSCAN_API_KEY
 
-export type Collection = { id: string; createdAt: string };
-export type StoredCollection = Collection & { failedWith?: string };
+export type Collection = { id: string; createdAt: string }
+export type StoredCollection = Collection & { failedWith?: string }
 
 export default async function verifyCollections(onlyFailed: boolean, dataPath: string) {
   if (!fs.existsSync(dataPath)) {
-    fs.writeFileSync(dataPath, JSON.stringify([], null, 2));
+    fs.writeFileSync(dataPath, JSON.stringify([], null, 2))
   }
 
-  const storedCollections: StoredCollection[] = JSON.parse(fs.readFileSync(dataPath, "utf-8"));
+  const storedCollections: StoredCollection[] = JSON.parse(fs.readFileSync(dataPath, "utf-8"))
 
-  let collections: Collection[];
+  let collections: Collection[]
 
   if (onlyFailed) {
-    collections = storedCollections.filter((c) => !!c.failedWith);
+    collections = storedCollections.filter((c) => !!c.failedWith)
   } else {
-    let createdAt = CREATED_AT_GTE;
+    let createdAt = CREATED_AT_GTE
 
     if (storedCollections.length > 0) {
       // Doing + 1 at the end so it doesn't have the same value and the same proxy is attempted to be verified again.
-      const latestCollectionCreatedAt = Number(storedCollections[storedCollections.length - 1].createdAt) + 1;
+      const latestCollectionCreatedAt = Number(storedCollections[storedCollections.length - 1].createdAt) + 1
 
       if (Number(createdAt) < latestCollectionCreatedAt) {
-        createdAt = latestCollectionCreatedAt.toString();
+        createdAt = latestCollectionCreatedAt.toString()
       }
     }
 
-    collections = await getCollectionsCreatedWithFactoryV3(createdAt);
+    collections = await getCollectionsCreatedWithFactoryV3(createdAt)
   }
 
   for (let i = 0; i < collections.length; i++) {
-    console.log(`${i + 1} / ${collections.length}`);
+    console.log(`${i + 1} / ${collections.length}`)
 
-    const collection = collections[i];
+    const collection = collections[i]
 
     try {
-      await verifyProxyExpectedImplementation(collection.id);
+      await verifyProxyExpectedImplementation(collection.id)
 
-      console.log("Verified successfully (Or already verified)");
+      console.log("Verified successfully (Or already verified)")
 
       if (onlyFailed) {
-        delete (collection as StoredCollection).failedWith;
+        delete (collection as StoredCollection).failedWith
       } else {
-        storedCollections.push({ ...collection });
+        storedCollections.push({ ...collection })
       }
     } catch (e: any) {
-      console.error(e.message);
+      console.error(e.message)
 
       if (onlyFailed) {
-        (collection as StoredCollection).failedWith = e.message;
+        (collection as StoredCollection).failedWith = e.message
       } else {
-        storedCollections.push({ ...collection, failedWith: e.message });
+        storedCollections.push({ ...collection, failedWith: e.message })
       }
     }
 
-    fs.writeFileSync(dataPath, JSON.stringify(storedCollections, null, 2));
+    fs.writeFileSync(dataPath, JSON.stringify(storedCollections, null, 2))
   }
 }
 
@@ -76,35 +76,35 @@ async function getCollectionsCreatedWithFactoryV3(createdAt: string): Promise<Co
           createdAt
         }
       }
-      `;
+      `
 
-  console.log("Fetching collections created with factory v3");
+  console.log("Fetching collections created with factory v3")
 
   const response = await fetch(SUBGRAPH_URL, {
     method: "post",
     body: JSON.stringify({ query }),
-  });
+  })
 
   const {
     data: { collections },
-  } = await response.json();
+  } = await response.json()
 
-  console.log(`Collections obtained: ${collections.length}`);
+  console.log(`Collections obtained: ${collections.length}`)
 
   if (collections.length >= 1000) {
-    console.warn(`There might be more collections`);
+    console.warn(`There might be more collections`)
   }
 
-  return collections.map((c: any) => ({ id: c.id, createdAt: c.createdAt }));
+  return collections.map((c: any) => ({ id: c.id, createdAt: c.createdAt }))
 }
 
 async function verifyProxyExpectedImplementation(proxyAddress: string) {
   try {
-    console.log(`Verifying proxy implementation for ${proxyAddress}`);
+    console.log(`Verifying proxy implementation for ${proxyAddress}`)
 
-    const form = new FormData();
-    form.append("address", proxyAddress);
-    form.append("expectedimplementation", COLLECTION_IMPLEMENTATION_ADDRESS);
+    const form = new FormData()
+    form.append("address", proxyAddress)
+    form.append("expectedimplementation", COLLECTION_IMPLEMENTATION_ADDRESS)
 
     const response = await fetch(
       `https://api.polygonscan.com/api?module=contract&action=verifyproxycontract&apikey=${POLYGONSCAN_API_KEY}`,
@@ -112,18 +112,18 @@ async function verifyProxyExpectedImplementation(proxyAddress: string) {
         method: "post",
         body: form,
       }
-    );
+    )
 
     if (!response.ok) {
-      throw new Error(`Response was not ok - ${await response.text()}`);
+      throw new Error(`Response was not ok - ${await response.text()}`)
     }
 
-    const { status, result } = await response.json();
+    const { status, result } = await response.json()
 
     if (status !== "1") {
-      throw new Error(`Status not 1 - ${result}`);
+      throw new Error(`Status not 1 - ${result}`)
     }
   } catch (e: any) {
-    throw new Error(`Verify failed with message: ${e.message}`);
+    throw new Error(`Verify failed with message: ${e.message}`)
   }
 }
