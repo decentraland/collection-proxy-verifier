@@ -107,7 +107,7 @@ async function verifyProxyExpectedImplementation(proxyAddress: string) {
     form.append("expectedimplementation", COLLECTION_IMPLEMENTATION_ADDRESS)
 
     const response = await fetch(
-      `https://api.polygonscan.com/api?module=contract&action=verifyproxycontract&apikey=${POLYGONSCAN_API_KEY}`,
+      `https://api.etherscan.io/v2/api?chainid=137&module=contract&action=verifyproxycontract&apikey=${POLYGONSCAN_API_KEY}`,
       {
         method: "post",
         body: form,
