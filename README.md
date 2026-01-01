@@ -25,7 +25,7 @@ You can try to verify collections that failed any previous attempt by running `n
 Always commit the `data.json` file so anyone can continue the progress of the previous person.
 
 ## Last Run
-12/12/2025
+01/01/2026
 
 ## 25/07/2022
 
